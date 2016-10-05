@@ -1,0 +1,5 @@
+suites:
+    main:
+        namespace: ControleProjetos
+        psr4_prefix: ControleProjetos
+        src_path: app
