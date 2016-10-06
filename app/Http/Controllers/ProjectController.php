@@ -5,6 +5,7 @@ namespace ControleProjetos\Http\Controllers;
 use ControleProjetos\Repositories\ProjectRepository;
 use ControleProjetos\Services\ProjectServices;
 use Illuminate\Http\Request;
+use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
 class ProjectController extends Controller
 {
@@ -32,7 +33,7 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        return $this->repository->all();
+        return $this->repository->findWhere(['owner_id'=>Authorizer::getResourceOwnerId()]);
     }
 
     /**
@@ -64,6 +65,9 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
+        if($this->checkProjectPermissions($id) == false){
+            return ['error'=>'Access Forbidden'];
+        }
         return $this->repository->find($id);
     }
 
@@ -87,6 +91,9 @@ class ProjectController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if($this->checkProjectPermissions($id) == false){
+            return ['error'=>'Access Forbidden'];
+        }
         $this->service->update($request->all(), $id);
     }
 
@@ -98,6 +105,32 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
+        if($this->checkProjectPermissions($id) == false){
+            return ['error'=>'Access Forbidden'];
+        }
         $this->repository->find($id)->delete();
     }
+
+    private function checkProjectOwner($projectId)
+    {
+        $userId = Authorizer::getResourceOwnerId();
+        return $this->repository->isOwner($projectId, $userId);
+    }
+
+    private function checkProjectMember($projectId)
+    {
+        $userId = Authorizer::getResourceOwnerId();
+        return $this->repository->hasMember($projectId, $userId);
+    }
+
+    private function checkProjectPermissions($projectId)
+    {
+        if($this->checkProjectOwner($projectId) or $this->checkProjectMember($projectId))
+        {
+            return true;
+        }
+        return false;
+    }
+
+
 }
