@@ -17,7 +17,7 @@ class OAuthClientTable extends Seeder
                 'secret' => 'secret',
                 'name' => 'AngularApp',
                 'created_at' =>  '2016-10-20 00:00:00:00',
-                'updated_at' =>  '2016-10-20 00:00:00:00',
+                'updated_at' =>  '2016-10-20 00:00:00:00'
             ]
         ]);
     }
