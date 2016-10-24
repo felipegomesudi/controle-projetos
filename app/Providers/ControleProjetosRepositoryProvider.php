@@ -37,6 +37,11 @@ class ControleProjetosRepositoryProvider extends ServiceProvider
             \ControleProjetos\Repositories\ProjectNoteRepository::class,
             \ControleProjetos\Repositories\ProjectNoteRepositoryEloquent::class
         );
+
+        $this->app->bind(
+            \ControleProjetos\Repositories\UserRepository::class,
+            \ControleProjetos\Repositories\UserRepositoryEloquent::class
+        );
     }
 
 }

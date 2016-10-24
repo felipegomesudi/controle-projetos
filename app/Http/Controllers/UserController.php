@@ -2,37 +2,32 @@
 
 namespace ControleProjetos\Http\Controllers;
 
-use ControleProjetos\Repositories\ProjectNoteRepository;
-use ControleProjetos\Services\ProjectNoteServices;
+use ControleProjetos\Repositories\UserRepository;
 use Illuminate\Http\Request;
+use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
-class ProjectNoteController extends Controller
+class UserController extends Controller
 {
-
-    /**
-     * @var ProjectNoteRepository
-     */
     private $repository;
-    /**
-     * @var ProjectNoteServices
-     */
-    private $service;
 
-    public function __construct(ProjectNoteRepository $repository, ProjectNoteServices $service)
+    public function __construct(UserRepository $repository)
     {
         $this->repository = $repository;
-        $this->service    = $service;
-
     }
 
+    public function authenticated()
+    {
+        $userId = Authorizer::getResourceOwnerId();
+        return $this->repository->find($userId);
+    }
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($id)
+    public function index()
     {
-        return $this->repository->findWhere(['project_id' => $id]);
+        //
     }
 
     /**
@@ -53,7 +48,7 @@ class ProjectNoteController extends Controller
      */
     public function store(Request $request)
     {
-        return $this->service->create($request->all());
+        //
     }
 
     /**
@@ -62,13 +57,9 @@ class ProjectNoteController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id, $noteId)
+    public function show($id)
     {
-        $result = $this->repository->findWhere(['project_id' => $id, 'id' => $noteId]);
-        if(isset($result) && count($result) == 1){
-            $result = $result[0];
-        }
-        return $result;
+        //
     }
 
     /**
@@ -89,9 +80,9 @@ class ProjectNoteController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id, $noteId)
+    public function update(Request $request, $id)
     {
-        $this->service->update($request->all(), $noteId);
+        //
     }
 
     /**
@@ -100,8 +91,8 @@ class ProjectNoteController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id, $noteId)
+    public function destroy($id)
     {
-        $this->repository->find($noteId)->delete();
+        //
     }
 }

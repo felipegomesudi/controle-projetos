@@ -34,7 +34,7 @@ Route::group(['middleware'=>'oauth'], function(){
 
     });
 
-
+    Route:get('user/authenticated', 'UserController@authenticated');
 
 });
 
