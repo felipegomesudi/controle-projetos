@@ -3,14 +3,17 @@
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Exclusão de Nota de Projeto</div>
+                <div class="panel-heading">Exclusão de Projeto</div>
                 <div class="panel-body">
 
-                    <p>Deseja excluir esta nota de projeto?</p>
+                    <p>Deseja excluir este projeto?</p>
 
                     <ul>
-                        <li><strong>Title: </strong>{{ projectNote.title }} </li>
-                        <li><strong>Note: </strong>{{ projectNote.note }} </li>
+                        <li><strong>Name: </strong>{{ project.project }} </li>
+                        <li><strong>Client: </strong>{{ project.client.data.name }} </li>
+                        <li><strong>Progress: </strong>{{ project.progress }} </li>
+                        <li><strong>Status: </strong>{{ project.status }} </li>
+                        <li><strong>Due date: </strong>{{ project.due_date | dateBr }} </li>
                     </ul>
 
                     <div class="form-group">
