@@ -4,6 +4,8 @@ namespace ControleProjetos\Http\Controllers;
 
 use ControleProjetos\Repositories\ClientRepository;
 use ControleProjetos\Services\ClientServices;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class ClientController extends Controller
@@ -64,7 +66,13 @@ class ClientController extends Controller
      */
     public function show($id)
     {
-        return $this->repository->find($id);
+        try {
+            return $this->repository->find($id);
+        } catch (ModelNotFoundException $e) {
+            return ['error'=>true, 'Cliente nao encontrado.'];
+        } catch (\Exception $e) {
+            return ['error'=>true, 'Ocorreu algum erro ao encontrar o cliente.'];
+        }
     }
 
     /**
@@ -87,7 +95,17 @@ class ClientController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->service->update($request->all(), $id);
+        try{
+            $this->service->update($request->all(), $id);
+            return ['success' => true, 'Cliente atualizado com sucesso!'];
+        } catch (QueryException $e) {
+            return ['error'=>true, 'Cliente nao pode ser atualizado.'];
+        } catch (ModelNotFoundException $e) {
+            return ['error'=>true, 'Cliente nao encontrado.'];
+        } catch (\Exception $e) {
+            return ['error'=>true, 'Ocorreu algum erro ao atualizar o cliente.'];
+        }
+
     }
 
     /**
@@ -98,6 +116,16 @@ class ClientController extends Controller
      */
     public function destroy($id)
     {
-        $this->repository->find($id)->delete();
+        try {
+            $this->repository->find($id)->delete();
+            return ['success'=>true, 'Cliente removido com sucesso!'];
+        } catch (QueryException $e) {
+            return $e->getMessage();
+//            return ['error'=>true, 'Cliente nao pode ser removido por estar vinculado a um ou mais projetos.'];
+        } catch (ModelNotFoundException $e) {
+            return ['error'=>true, 'Cliente nao encontrado.'];
+        } catch (\Exception $e) {
+            return ['error'=>true, 'Ocorreu algum erro ao excluir o cliente.'];
+        }
     }
 }

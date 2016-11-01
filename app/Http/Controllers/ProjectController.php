@@ -4,6 +4,8 @@ namespace ControleProjetos\Http\Controllers;
 
 use ControleProjetos\Repositories\ProjectRepository;
 use ControleProjetos\Services\ProjectServices;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
@@ -68,7 +70,14 @@ class ProjectController extends Controller
         if($this->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
         }
-        return $this->repository->find($id);
+        try {
+            return $this->repository->find($id);
+        } catch (ModelNotFoundException $e) {
+            return ['error'=>true, 'Projeto nao encontrado.'];
+        } catch (\Exception $e) {
+            return ['error'=>true, 'Ocorreu algum erro ao encontrar o projeto.'];
+        }
+
     }
 
     /**
@@ -94,7 +103,15 @@ class ProjectController extends Controller
         if($this->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
         }
-        $this->service->update($request->all(), $id);
+        try {
+            $this->service->update($request->all(), $id);
+            return ['success'=>true, 'Projeto atualizado com sucesso!'];
+        } catch (ModelNotFoundException $e) {
+            return ['error'=>true, 'Projeto nao encontrado.'];
+        } catch (\Exception $e) {
+            return ['error'=>true, 'Ocorreu algum erro ao atualizar o projeto.'];
+        }
+
     }
 
     /**
@@ -108,7 +125,16 @@ class ProjectController extends Controller
         if($this->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
         }
-        $this->repository->find($id)->delete();
+        try {
+            $this->repository->skipPresenter()->find($id)->delete();
+            return ['success'=>true, 'Projeto removido com sucesso!'];
+        } catch (QueryException $e) {
+            return ['error'=>true, 'Projeto nao pode ser removido pois existe um ou mais clientes vinculados a ele.'];
+        } catch (ModelNotFoundException $e) {
+            return ['error'=>true, 'Projeto nao encontrado.'];
+        } catch (\Exception $e) {
+            return ['error'=>true, 'Ocorreu algum erro ao excluir o projeto.'];
+        }
     }
 
     private function checkProjectOwner($projectId)
