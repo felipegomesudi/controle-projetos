@@ -67,7 +67,7 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
-        if($this->checkProjectPermissions($id) == false){
+        if($this->service->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
         }
         try {
@@ -100,7 +100,7 @@ class ProjectController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if($this->checkProjectPermissions($id) == false){
+        if($this->service->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
         }
         try {
@@ -122,7 +122,7 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
-        if($this->checkProjectPermissions($id) == false){
+        if($this->service->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
         }
         try {
@@ -137,26 +137,56 @@ class ProjectController extends Controller
         }
     }
 
-    private function checkProjectOwner($projectId)
-    {
-        $userId = Authorizer::getResourceOwnerId();
-        return $this->repository->isOwner($projectId, $userId);
-    }
 
-    private function checkProjectMember($projectId)
+    public function members($id)
     {
-        $userId = Authorizer::getResourceOwnerId();
-        return $this->repository->hasMember($projectId, $userId);
-    }
-
-    private function checkProjectPermissions($projectId)
-    {
-        if($this->checkProjectOwner($projectId) or $this->checkProjectMember($projectId))
-        {
-            return true;
+        try {
+            $members = $this->repository->skipPresenter()->find($id)->members()->get();
+            if (count($members)) {
+                return $members;
+            }
+            return $this->erroMsgm('Esse projeto ainda não tem membros.');
+        } catch (ModelNotFoundException $e) {
+            return $this->erroMsgm('Projeto não encontrado.');
+        } catch (QueryException $e) {
+            return $this->erroMsgm('Cliente não encontrado.');
+        } catch (\Exception $e) {
+            return $this->erroMsgm('Ocorreu um erro ao exibir os membros do projeto.');
         }
-        return false;
     }
+    public function addMember($project_id, $member_id)
+    {
+        try {
+            return $this->service->addMember($project_id, $member_id);
+        } catch (ModelNotFoundException $e) {
+            return $this->erroMsgm('Projeto não encontrado.');
+        } catch (QueryException $e) {
+            return $this->erroMsgm('Cliente não encontrado.');
+        } catch (\Exception $e) {
+            return $this->erroMsgm('Ocorreu um erro ao inserir o membro.');
+        }
+    }
+    public function removeMember($project_id, $member_id)
+    {
+        try {
+            return $this->service->removeMember($project_id, $member_id);
+        } catch (ModelNotFoundException $e) {
+            return $this->erroMsgm('Projeto não encontrado.');
+        } catch (QueryException $e) {
+            return $this->erroMsgm('Cliente não encontrado.');
+        } catch (\Exception $e) {
+            return $this->erroMsgm('Ocorreu um erro ao remover o membro.');
+        }
+    }
+    private function erroMsgm($mensagem)
+    {
+        return [
+            'error' => true,
+            'message' => $mensagem,
+        ];
+    }
+
+
 
 
 }
