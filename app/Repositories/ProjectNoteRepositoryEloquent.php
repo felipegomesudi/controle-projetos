@@ -2,11 +2,10 @@
 
 namespace ControleProjetos\Repositories;
 
+use ControleProjetos\Presenters\ProjectNotePresenter;
 use Prettus\Repository\Eloquent\BaseRepository;
 use Prettus\Repository\Criteria\RequestCriteria;
-use ControleProjetos\Repositories\ProjectNoteRepository;
 use ControleProjetos\Entities\ProjectNote;
-use ControleProjetos\Validators\ProjectNoteValidator;
 
 /**
  * Class ProjectNoteRepositoryEloquent
@@ -22,6 +21,11 @@ class ProjectNoteRepositoryEloquent extends BaseRepository implements ProjectNot
     public function model()
     {
         return ProjectNote::class;
+    }
+
+    public function presenter()
+    {
+        return ProjectNotePresenter::class;
     }
 
     

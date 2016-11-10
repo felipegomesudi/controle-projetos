@@ -76,7 +76,14 @@ class ProjectFileController extends Controller
             return ['error'=>'Access Forbidden'];
         }
         try {
-            return response()->download($this->service->getFilePath($id));
+            $filePath    = $this->service->getFilePath($id);
+            $fileContent = file_get_contents($filePath);
+            $file64      = base64_encode($fileContent);
+            return [
+                'file' => $file64,
+                'size' => filesize($filePath),
+                'name' => $this->service->getFileName($id)
+            ];
         } catch (ModelNotFoundException $e) {
             return ['error'=>true, 'Arquivo nao encontrado.'];
         } catch (\Exception $e) {
@@ -90,7 +97,7 @@ class ProjectFileController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($projectId, $id)
     {
         if($this->service->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
@@ -123,7 +130,7 @@ class ProjectFileController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $projectId, $id)
     {
         if($this->service->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];
@@ -145,7 +152,7 @@ class ProjectFileController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($projectId, $id)
     {
         if($this->service->checkProjectPermissions($id) == false){
             return ['error'=>'Access Forbidden'];

@@ -3,6 +3,7 @@ var app = angular.module('app', [
     'angular-oauth2',
     'app.controllers',
     'app.filters',
+    'app.directives',
     'app.services',
     'ui.bootstrap.typeahead',
     'ui.bootstrap.datepicker',
@@ -12,6 +13,7 @@ var app = angular.module('app', [
 
 angular.module('app.controllers', ['ngMessages', 'angular-oauth2']);
 angular.module('app.filters', []);
+angular.module('app.directives', [])
 angular.module('app.services', ['ngResource']);
 
 app.provider('appConfig', ['$httpParamSerializerProvider', function($httpParamSerializerProvider){

@@ -1,17 +1,20 @@
 angular.module('app.controllers')
     .controller('ProjectFileEditController',
-        ['$scope', '$location', '$routeParams', 'ProjectNote',
-        function ($scope, $location, $routeParams, ProjectNote) {
+        ['$scope', '$location', '$routeParams', 'ProjectFile',
+        function ($scope, $location, $routeParams, ProjectFile) {
 
-            $scope.projectNote = ProjectNote.get({
+            $scope.projectFile = ProjectFile.get({
                 id: $routeParams.id,
-                idNote: $routeParams.idNote
+                idFile: $routeParams.idFile
             });
 
             $scope.save = function () {
                 if($scope.form.$valid){
-                    ProjectNote.update({idNote: $scope.projectNote.id}, $scope.projectNote, function () {
-                        $location.path('/project/'+$routeParams.id+'/notes');
+                    ProjectFile.update({
+                        id: $routeParams.id,
+                        idFile: $routeParams.idFile
+                    }, $scope.projectFile, function () {
+                        $location.path('/project/'+$routeParams.id+'/files');
                     });
                 }
             };
