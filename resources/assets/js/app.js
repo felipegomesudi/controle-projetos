@@ -8,7 +8,9 @@ var app = angular.module('app', [
     'ui.bootstrap.typeahead',
     'ui.bootstrap.datepicker',
     'ui.bootstrap.tpls',
-    'ngFileUpload'
+    'ui.bootstrap.modal',
+    'ngFileUpload',
+    'http-auth-interceptor'
 ]);
 
 angular.module('app.controllers', ['ngMessages', 'angular-oauth2']);
@@ -24,6 +26,12 @@ app.provider('appConfig', ['$httpParamSerializerProvider', function($httpParamSe
                 {value: 1, label: 'Não Iniciado'},
                 {value: 2, label: 'Iniciado'},
                 {value: 3, label: 'Concluído'}
+            ]
+        },
+        projectTask: {
+            status: [
+                {value: 1, label: 'Incompleta'},
+                {value: 2, label: 'Completa'}
             ]
         },
         urls: {
@@ -70,11 +78,22 @@ app.config([
     $httpProvider.defaults.headers.put['Content-Type']  = "application/x-www-form-urlencoded;charset=utf-8";
     $httpProvider.defaults.transformRequest  = appConfigProvider.config.utils.transformRequest;
     $httpProvider.defaults.transformResponse = appConfigProvider.config.utils.transformResponse;
+    $httpProvider.interceptors.splice(0,1);
+    $httpProvider.interceptors.splice(0,1);
+    $httpProvider.interceptors.push('oauthFixInterceptor');
 
     $routeProvider
         .when('/login',{
             templateUrl: 'build/views/login.html',
             controller: 'LoginController'
+        })
+        .when('/logout',{
+            resolve: {
+                logout: ['$location', 'OAuthToken', function($location, OAuthToken){
+                    OAuthToken.removeToken();
+                    return $location.path('/login');
+                }]
+            }
         })
         .when('/home',{
             templateUrl: 'build/views/home.html',
@@ -84,15 +103,15 @@ app.config([
             templateUrl: 'build/views/client/list.html',
             controller: 'ClientListController'
         })
-        .when('/clients/new',{
+        .when('/client/new',{
             templateUrl: 'build/views/client/new.html',
             controller: 'ClientNewController'
         })
-        .when('/clients/:id/edit',{
+        .when('/client/:id/edit',{
             templateUrl: 'build/views/client/edit.html',
             controller: 'ClientEditController'
         })
-        .when('/clients/:id/remove',{
+        .when('/client/:id/remove',{
             templateUrl: 'build/views/client/remove.html',
             controller: 'ClientRemoveController'
         })
@@ -100,19 +119,19 @@ app.config([
             templateUrl: 'build/views/project-note/list.html',
             controller: 'ProjectNoteListController'
         })
-        .when('/project/:id/notes/:idNote/show',{
+        .when('/project/:id/note/:idNote/show',{
             templateUrl: 'build/views/project-note/show.html',
             controller: 'ProjectNoteShowController'
         })
-        .when('/project/:id/notes/new',{
+        .when('/project/:id/note/new',{
             templateUrl: 'build/views/project-note/new.html',
             controller: 'ProjectNoteNewController'
         })
-        .when('/project/:id/notes/:idNote/edit',{
+        .when('/project/:id/note/:idNote/edit',{
             templateUrl: 'build/views/project-note/edit.html',
             controller: 'ProjectNoteEditController'
         })
-        .when('/project/:id/notes/:idNote/remove',{
+        .when('/project/:id/note/:idNote/remove',{
             templateUrl: 'build/views/project-note/remove.html',
             controller: 'ProjectNoteRemoveController'
         })
@@ -120,15 +139,15 @@ app.config([
             templateUrl: 'build/views/project/list.html',
             controller: 'ProjectListController'
         })
-        .when('/projects/new',{
+        .when('/project/new',{
             templateUrl: 'build/views/project/new.html',
             controller: 'ProjectNewController'
         })
-        .when('/projects/:id/edit',{
+        .when('/project/:id/edit',{
             templateUrl: 'build/views/project/edit.html',
             controller: 'ProjectEditController'
         })
-        .when('/projects/:id/remove',{
+        .when('/project/:id/remove',{
             templateUrl: 'build/views/project/remove.html',
             controller: 'ProjectRemoveController'
         })
@@ -136,17 +155,41 @@ app.config([
             templateUrl: 'build/views/project-file/list.html',
             controller: 'ProjectFileListController'
         })
-        .when('/project/:id/files/new',{
+        .when('/project/:id/file/new',{
             templateUrl: 'build/views/project-file/new.html',
             controller: 'ProjectFileNewController'
         })
-        .when('/project/:id/files/:idFile/edit',{
+        .when('/project/:id/file/:idFile/edit',{
             templateUrl: 'build/views/project-file/edit.html',
             controller: 'ProjectFileEditController'
         })
-        .when('/project/:id/files/:idFile/remove',{
+        .when('/project/:id/file/:idFile/remove',{
             templateUrl: 'build/views/project-file/remove.html',
             controller: 'ProjectFileRemoveController'
+        })
+        .when('/project/:id/tasks',{
+            templateUrl: 'build/views/project-task/list.html',
+            controller: 'ProjectTaskListController'
+        })
+        .when('/project/:id/task/new',{
+            templateUrl: 'build/views/project-task/new.html',
+            controller: 'ProjectTaskNewController'
+        })
+        .when('/project/:id/task/:idTask/edit',{
+            templateUrl: 'build/views/project-task/edit.html',
+            controller: 'ProjectTaskEditController'
+        })
+        .when('/project/:id/task/:idTask/remove',{
+            templateUrl: 'build/views/project-task/remove.html',
+            controller: 'ProjectTaskRemoveController'
+        })
+        .when('/project/:id/members',{
+            templateUrl: 'build/views/project-member/list.html',
+            controller: 'ProjectMemberListController'
+        })
+        .when('/project/:id/member/:idProjectMember/remove',{
+            templateUrl: 'build/views/project-member/remove.html',
+            controller: 'ProjectMemberRemoveController'
         })
         OAuthProvider.configure({
             baseUrl: appConfigProvider.config.baseUrl,
@@ -162,19 +205,33 @@ app.config([
         });
 }]);
 
-app.run(['$rootScope', '$window', 'OAuth', function($rootScope, $window, OAuth) {
-    $rootScope.$on('oauth:error', function(event, rejection) {
+app.run(['$rootScope', '$location', '$http', '$modal', 'httpBuffer', 'OAuth', function($rootScope, $location, $http, $modal, httpBuffer, OAuth) {
+    $rootScope.$on('$routeChangeStart', function(event, next, current){
+        if(next.$$route.originalPath != '/login'){
+            if(!OAuth.isAuthenticated()){
+                $location.path('login');
+            }
+        }
+    });
+    $rootScope.$on('oauth:error', function(event, data) {
         // Ignore `invalid_grant` error - should be catched on `LoginController`.
-        if ('invalid_grant' === rejection.data.error) {
+        if ('invalid_grant' === data.rejection.data.error) {
             return;
         }
 
         // Refresh token when a `invalid_token` error occurs.
-        if ('invalid_token' === rejection.data.error) {
-            return OAuth.getRefreshToken();
+        if ('access_denied' === data.rejection.data.error) {
+            httpBuffer.append(data.rejection.config, data.deferred);
+            if(!$rootScope.loginModalOpened){
+                var modalInstance = $modal.open({
+                    templateUrl: 'build/views/templates/loginModal.html',
+                    controller: 'LoginModalController'
+                });
+                $rootScope.loginModalOpened = true;
+            }
+            return;
         }
 
-        // Redirect to `/login` with the `error_reason`.
-        return $window.location.href = '/login?error_reason=' + rejection.data.error;
+        return $location.path('login');
     });
 }]);

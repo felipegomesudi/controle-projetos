@@ -7,7 +7,6 @@ use ControleProjetos\Services\ProjectServices;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
 class ProjectController extends Controller
 {
@@ -25,7 +24,8 @@ class ProjectController extends Controller
     {
         $this->repository = $repository;
         $this->service    = $service;
-
+        $this->middleware('check.project.owner', ['except'=> ['index', 'store', 'show']]);
+        $this->middleware('check.project.permission', ['except'=> ['index', 'store', 'update', 'destroy']]);
     }
 
     /**
@@ -35,17 +35,7 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        return $this->repository->findWhere(['owner_id'=>Authorizer::getResourceOwnerId()]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return $this->repository->findWithOwnerAndMember(\Authorizer::getResourceOwnerId());
     }
 
     /**

@@ -52,6 +52,11 @@ class ControleProjetosRepositoryProvider extends ServiceProvider
             \ControleProjetos\Repositories\ProjectTaskRepository::class,
             \ControleProjetos\Repositories\ProjectTaskRepositoryEloquent::class
         );
+
+        $this->app->bind(
+            \ControleProjetos\Repositories\ProjectMemberRepository::class,
+            \ControleProjetos\Repositories\ProjectMemberRepositoryEloquent::class
+        );
     }
 
 }

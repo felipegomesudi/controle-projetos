@@ -7,7 +7,6 @@ use ControleProjetos\Services\ProjectFileServices;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
 class ProjectFileController extends Controller
 {
@@ -39,22 +38,12 @@ class ProjectFileController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
         $file = $request->file('file');
         $extension = $file->getClientOriginalExtension();
@@ -64,17 +53,14 @@ class ProjectFileController extends Controller
         $data['name'] = $request->name;
         $data['project_id'] = $request->project_id;
         $data['description'] = $request->description;
+        $data['project_id'] = $id;
 
-        //$this->service->createFile($data);
         return $this->service->create($data);
 
     }
 
-    public function showFile($id)
+    public function showFile($idProject, $id)
     {
-        if($this->service->checkProjectPermissions($id) == false){
-            return ['error'=>'Access Forbidden'];
-        }
         try {
             $filePath    = $this->service->getFilePath($id);
             $fileContent = file_get_contents($filePath);
@@ -99,9 +85,9 @@ class ProjectFileController extends Controller
      */
     public function show($projectId, $id)
     {
-        if($this->service->checkProjectPermissions($id) == false){
-            return ['error'=>'Access Forbidden'];
-        }
+//        if($this->service->checkProjectPermissions($id) == false){
+//            return ['error'=>'Access Forbidden'];
+//        }
         try {
             return $this->repository->find($id);
         } catch (ModelNotFoundException $e) {
@@ -113,30 +99,18 @@ class ProjectFileController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $projectId, $id)
+    public function update(Request $request, $id, $fileId)
     {
-        if($this->service->checkProjectPermissions($id) == false){
-            return ['error'=>'Access Forbidden'];
-        }
         try {
-            $this->service->update($request->all(), $id);
+            $data = $request->all();
+            $data['project_id'] = $id;
+            $this->service->update($data, $fileId);
             return ['success'=>true, 'Arquivo atualizado com sucesso!'];
         } catch (ModelNotFoundException $e) {
             return ['error'=>true, 'Arquivo nao encontrado.'];
@@ -154,9 +128,6 @@ class ProjectFileController extends Controller
      */
     public function destroy($projectId, $id)
     {
-        if($this->service->checkProjectPermissions($id) == false){
-            return ['error'=>'Access Forbidden'];
-        }
         try {
             $this->service->delete($id);
             return ['success'=>true, 'Arquivo removido com sucesso!'];

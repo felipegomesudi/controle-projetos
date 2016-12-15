@@ -36,24 +36,16 @@ class ProjectTaskController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
-        return $this->service->create($request->all());
+        $data = $request->all();
+        $data['project_id'] = $id;
+        return $this->service->create($data);
     }
 
     /**
@@ -64,22 +56,9 @@ class ProjectTaskController extends Controller
      */
     public function show($id, $taskId)
     {
-        $result = $this->repository->findWhere(['project_id' => $id, 'id' => $taskId]);
-//        if(isset($result) && count($result) == 1){
-//            $result = $result[0];
-//        }
-        return $result;
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+//        $result = $this->repository->findWhere(['project_id' => $id, 'id' => $taskId]);
+//        return $result;
+        return $this->repository->find($taskId);
     }
 
     /**
@@ -92,7 +71,9 @@ class ProjectTaskController extends Controller
     public function update(Request $request, $id, $taskId)
     {
         try{
-            $this->service->update($request->all(), $taskId);
+            $data = $request->all();
+            $data['project_id'] = $id;
+            $this->service->update($data, $taskId);
             return "Update concluido";
         }catch (\Exception $e){
             return $e->getMessage();

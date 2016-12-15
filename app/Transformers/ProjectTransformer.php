@@ -27,11 +27,12 @@ class ProjectTransformer extends TransformerAbstract
             'progress' => (int) $project->progress,
             'status' => $project->status,
             'due_date' => $project->due_date,
+            'is_member' => $project->owner_id != \Authorizer::getResourceOwnerId()
         ];
     }
 
     public function includeMembers(Project $project){
-        return $this->collection($project->members, new ProjectMemberTransformer());
+        return $this->collection($project->members, new MemberTransformer());
     }
 
     public function includeClient(Project $project){

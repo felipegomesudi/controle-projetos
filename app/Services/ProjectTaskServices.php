@@ -8,6 +8,7 @@
 
 namespace ControleProjetos\Services;
 
+use ControleProjetos\Repositories\ProjectRepository;
 use ControleProjetos\Repositories\ProjectTaskRepository;
 use ControleProjetos\Validators\ProjectTaskValidator;
 use Prettus\Validator\Exceptions\ValidatorException;
@@ -20,14 +21,19 @@ class ProjectTaskServices
      */
     protected $repository;
     /**
+     * @var ProjectRepository
+     */
+    protected $projectRepository;
+    /**
      * @var ProjectTaskValidator
      */
     protected $validator;
 
 
-    public function __construct(ProjectTaskRepository $repository, ProjectTaskValidator $validator)
+    public function __construct(ProjectTaskRepository $repository, ProjectRepository $projectRepository, ProjectTaskValidator $validator)
     {
         $this->repository = $repository;
+        $this->projectRepository = $projectRepository;
         $this->validator = $validator;
     }
 
@@ -35,7 +41,12 @@ class ProjectTaskServices
 
         try{
             $this->validator->with($data)->passesOrFail();
-            return $this->repository->create($data);
+
+            $project = $this->projectRepository->skipPresenter()->find($data['project_id']);
+            $projectTask = $project->tasks()->create($data);
+
+            return $projectTask;
+
         }catch (ValidatorException $e){
             return [
                 'error' => true,
