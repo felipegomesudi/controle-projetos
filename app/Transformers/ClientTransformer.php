@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Felipe
- * Date: 06/10/2016
- * Time: 10:27
- */
 
 namespace ControleProjetos\Transformers;
 
@@ -13,6 +7,8 @@ use League\Fractal\TransformerAbstract;
 
 class ClientTransformer extends TransformerAbstract
 {
+
+    protected $defaultIncludes = ['projects'];
 
     public function transform(Client $client)
     {
@@ -25,6 +21,12 @@ class ClientTransformer extends TransformerAbstract
             'address' => $client->address,
             'obs' => $client->obs,
         ];
+    }
+
+    public function includeProjects(Client $client){
+        $transformer = new ProjectTransformer();
+        $transformer->setDefaultIncludes([]);
+        return $this->collection($client->projects, $transformer);
     }
 
 }

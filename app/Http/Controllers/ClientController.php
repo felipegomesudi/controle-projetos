@@ -7,6 +7,7 @@ use ControleProjetos\Services\ClientServices;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Prettus\Repository\Criteria\RequestCriteria;
 
 class ClientController extends Controller
 {
@@ -32,9 +33,10 @@ class ClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return $this->repository->all();
+        $limit = $request->query->get('limit', 15);
+        return $this->repository->paginate($limit);
     }
 
     /**
