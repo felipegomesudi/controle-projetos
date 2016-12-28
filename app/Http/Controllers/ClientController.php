@@ -7,7 +7,9 @@ use ControleProjetos\Services\ClientServices;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Prettus\Repository\Criteria\RequestCriteria;
+use Prettus\Validator\Exceptions\ValidatorException;
 
 class ClientController extends Controller
 {
@@ -57,7 +59,14 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        return $this->service->create($request->all());
+        try {
+            return $this->service->create($request->all());
+        } catch (ValidatorException $e) {
+            return Response::json([
+                'error' => true,
+                'message' => $e->getMessageBag()
+            ], 400);
+        }
     }
 
     /**
@@ -98,14 +107,18 @@ class ClientController extends Controller
     public function update(Request $request, $id)
     {
         try{
-            $this->service->update($request->all(), $id);
-            return ['success' => true, 'Cliente atualizado com sucesso!'];
+            return $this->service->update($request->all(), $id);
         } catch (QueryException $e) {
-            return ['error'=>true, 'Cliente nao pode ser atualizado.'];
+            return $this->erroMsgm('Cliente nao pode ser atualizado.');
         } catch (ModelNotFoundException $e) {
-            return ['error'=>true, 'Cliente nao encontrado.'];
+            return $this->erroMsgm('Cliente não encontrado.');
+        } catch (ValidatorException $e) {
+            return Response::json([
+                'error' => true,
+                'message' => $e->getMessageBag()
+            ], 400);
         } catch (\Exception $e) {
-            return ['error'=>true, 'Ocorreu algum erro ao atualizar o cliente.'];
+            return $this->erroMsgm('Ocorreu um erro ao atualizar o cliente.');
         }
 
     }
@@ -120,14 +133,24 @@ class ClientController extends Controller
     {
         try {
             $this->repository->find($id)->delete();
-            return ['success'=>true, 'Cliente removido com sucesso!'];
+            return [
+                'success' => true,
+                'message' => "Cliente deletado com sucesso!"
+            ];
         } catch (QueryException $e) {
-            return $e->getMessage();
-//            return ['error'=>true, 'Cliente nao pode ser removido por estar vinculado a um ou mais projetos.'];
+            return $this->erroMsgm('Cliente não pode ser apagado pois existe um ou mais projetos vinculados a ele.');
         } catch (ModelNotFoundException $e) {
-            return ['error'=>true, 'Cliente nao encontrado.'];
+            return $this->erroMsgm('Cliente não encontrado.');
         } catch (\Exception $e) {
-            return ['error'=>true, 'Ocorreu algum erro ao excluir o cliente.'];
+            return $this->erroMsgm('Ocorreu um erro ao excluir o cliente.');
         }
+    }
+
+    private function erroMsgm($mensagem)
+    {
+        return [
+            'error' => true,
+            'message' => $mensagem,
+        ];
     }
 }

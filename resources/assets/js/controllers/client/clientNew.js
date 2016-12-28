@@ -6,7 +6,14 @@ angular.module('app.controllers')
             if($scope.form.$valid){
                 $scope.client.$save().then(function () {
                     $location.path('/clients');
-                });
+                }), function (error) {
+                    if(error.data.hasOwnProperty('error') && error.data.error){
+                        $scope.error = {
+                            error: true,
+                            message: error.data.message
+                        };
+                    }
+                };
             }
         };
 

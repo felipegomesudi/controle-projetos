@@ -17,9 +17,9 @@ var app = angular.module('app', [
     'ui-notification'
 ]);
 
-angular.module('app.controllers', ['ngMessages', 'angular-oauth2']);
+angular.module('app.controllers', ['ngMessages']);
 angular.module('app.filters', []);
-angular.module('app.directives', [])
+angular.module('app.directives', []);
 angular.module('app.services', ['ngResource']);
 
 app.provider('appConfig', ['$httpParamSerializerProvider', function($httpParamSerializerProvider){
@@ -229,7 +229,8 @@ app.config([
             templateUrl: 'build/views/project-member/remove.html',
             controller: 'ProjectMemberRemoveController',
             title: 'Projects Members'
-        })
+        });
+
         OAuthProvider.configure({
             baseUrl: appConfigProvider.config.baseUrl,
             clientId: 'appid1',
@@ -318,8 +319,8 @@ app.run(['$rootScope', '$location', '$http', '$modal', '$cookies', '$pusher', '$
             httpBuffer.append(data.rejection.config, data.deferred);
             if(!$rootScope.loginModalOpened){
                 var modalInstance = $modal.open({
-                    templateUrl: 'build/views/templates/loginModal.html',
-                    controller: 'LoginModalController'
+                    templateUrl: 'build/views/templates/refreshModal.html',
+                    controller: 'RefreshModalController'
                 });
                 $rootScope.loginModalOpened = true;
             }

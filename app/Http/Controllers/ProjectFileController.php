@@ -4,6 +4,7 @@ namespace ControleProjetos\Http\Controllers;
 
 use ControleProjetos\Repositories\ProjectFileRepository;
 use ControleProjetos\Services\ProjectFileServices;
+use Illuminate\Contracts\Filesystem\Factory;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -20,11 +21,16 @@ class ProjectFileController extends Controller
      */
     private $service;
 
-    public function __construct(ProjectFileRepository $repository, ProjectFileServices $service)
+    /**
+     * @var \Illuminate\Contracts\Filesystem\Factory
+     */
+    private $storage;
+
+    public function __construct(ProjectFileRepository $repository, ProjectFileServices $service, Factory $storage)
     {
         $this->repository = $repository;
         $this->service    = $service;
-
+        $this->storage    = $storage;
     }
 
     /**
@@ -62,13 +68,15 @@ class ProjectFileController extends Controller
     public function showFile($idProject, $id)
     {
         try {
+            $model = $this->repository->skipPresenter()->find($id);
             $filePath    = $this->service->getFilePath($id);
             $fileContent = file_get_contents($filePath);
             $file64      = base64_encode($fileContent);
             return [
                 'file' => $file64,
                 'size' => filesize($filePath),
-                'name' => $this->service->getFileName($id)
+                'name' => $this->service->getFileName($id),
+                'mime_type' => $this->storage->mimeType($model->getFileName())
             ];
         } catch (ModelNotFoundException $e) {
             return ['error'=>true, 'Arquivo nao encontrado.'];

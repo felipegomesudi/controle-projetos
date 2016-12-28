@@ -9,6 +9,13 @@ angular.module('app.controllers')
                 if($scope.form.$valid){
                     Client.update({id: $scope.client.id}, $scope.client, function () {
                         $location.path('/clients');
+                    },function(error){
+                        if(error.data.hasOwnProperty('error') && error.data.error){
+                            $scope.error = {
+                                error: true,
+                                message: error.data.message
+                            };
+                        }
                     });
                 }
             };
